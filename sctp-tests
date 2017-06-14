@@ -1,0 +1,328 @@
+#!/bin/bash
+
+export ROOTDIR=$(dirname $(readlink -f $BASH_SOURCE))
+source "$ROOTDIR/libst/logging.sh"
+
+st_env_pushd()
+{
+	local name=$1
+
+	[ -d $name ] || name=$(dirname $name)
+	pushd $name > /dev/null 2>&1
+}
+
+st_env_popd()
+{
+	popd > /dev/null 2>&1
+}
+
+st_o()
+{
+	echo ${O:-"st"}
+}
+
+st_topo_validate()
+{
+	local topo=$Topo
+
+	[ -z $topo ] && return 0
+	
+	topo="$ROOTDIR/topos/$topo.sh"
+
+	[ -f $topo ] || {
+		st_log ERR "$Topo doesn't exist !"
+		return 1
+	}
+
+	source $topo
+	st_log DBG "$Topo load done $topo !"
+}
+
+st_case_validate()
+{
+	local case=$1
+
+	case=${case:-"$(pwd)/test.sh"}
+
+	[ ${case:0:1} = "/" ] || {
+		case="$ROOTDIR/$case"
+	}
+
+	[ -f $case ] || {
+		st_log ERR "$case doesn't exist !"
+		return 1
+	}
+
+	source $case
+
+	[ -n "$Name" ] || {
+		st_log WARN "$case has no name !"
+	}
+
+	st_topo_validate || return 1
+
+	st_log DBG "$Name load done $case !"
+}
+
+st_parse_testcase()
+{
+	local path=$TestCase
+
+
+	[ -d "$path" ] && {
+		echo "$path/test.sh"
+		return 0;
+	}
+
+	[ ${path:0-4} = "list" ] && {
+		cat $path
+		return 0
+	}
+
+	echo $path
+}
+
+st_case_run()
+{
+	set -x
+	st_do_setup
+	st_do_test
+	st_do_clean
+	set +x
+}
+
+st_case_schedule()
+{
+	local cases=$(st_parse_testcase)
+
+	st_log DBG "get case list done $cases !"
+
+	for c in $cases; do
+		st_env_pushd $c
+		st_case_validate $c || return 1
+
+		st_log INFO "=== $Name === start"
+		st_case_run >> $Output 2>&1 
+		st_log INFO "--- $Name --- done"
+		st_env_popd
+	done
+}
+
+st_func_chkdo()
+{
+	local f=$1
+	local t=$(type -t $f)
+
+	[ "$t" = function ] && $f
+}
+
+st_do_setup()
+{
+	st_func_chkdo st_topo_setup; sleep 2
+	st_func_chkdo do_setup
+
+	st_log DBG "$Name setup done"
+}
+
+st_do_test()
+{
+	[ -n do_test ] || {
+		st_log ERR "$Name no do_test in case"
+		return 1;
+	}
+
+	do_test
+	st_log DBG "$Name test done"
+}
+
+st_do_clean()
+{
+	st_func_chkdo do_clean
+	st_func_chkdo st_topo_clean
+
+	st_log DBG "$Name clean done"
+}
+
+st_cfg_load()
+{
+	local cfg="$1"
+
+	[ ${cfg:0:1} = "/" ] || {
+		cfg="$ROOTDIR/$cfg"
+	}
+	[ -f $cfg ] || {
+		st_log ERR "$cfg doesn't exist !"
+		return
+	}
+
+	source $cfg
+}
+
+st_init_param()
+{
+	local args=$(getopt -o e:o:c:l:L:O: -- $st_opts)
+
+	st_cfg_load st.cfg
+
+	exec 3>&1
+	eval set -- "$args"
+	while :; do
+		case "$1" in
+		-o) O="$2"; shift 2 ;;
+		-O) Output="$2"; shift 2 ;;
+		-L) LogFile="$2"; shift 2 ;;
+		-e) TestCase="$2"; shift 2 ;;
+		-l) LogLevel="$2"; shift 2 ;;
+		-c) st_cfg_load "$2"; shift 2 ;;
+		--) shift; break;;
+		esac
+	done
+
+	st_log DBG "init param done $TestCase $LogLevel !"
+}
+
+st_check_pack()
+{
+	st_load_libst "system" || return 1
+	st_package_setup >> $Output 2>&1
+	st_log DBG "check and install package done !"
+}
+
+st_clean_logs()
+{
+	rm -rf $Output $LogFile
+}
+
+st_do_init()
+{
+	st_init_param
+	st_clean_logs
+	st_check_pack
+}
+
+st_shell()
+{
+	local file="$ROOTDIR/sctp-tests"
+	local cmd="reload"
+
+	st_cmd=$cmd bash --init-file $file -i
+}
+
+st_inbuilt()
+{
+	local cmds="init setup test clean reload"
+
+	for cmd in $cmds; do
+		eval "  st_$cmd()
+			{
+				st_cmd=$cmd sctp_tests 
+			}"
+	done
+}
+
+st_load_libst()
+{
+	local name=$1
+
+	[ -z $name ] && return 0
+	
+	name="$ROOTDIR/libst/$name.sh"
+
+	[ -f $name ] || {
+		st_log ERR "$name doesn't exist !"
+		return 1
+	}
+
+	source $name
+}
+
+st_bash_help()
+{
+	echo ""
+	echo "  Welcome to sctp-tests v1.0 shell ! You can debug case with inbuilt cmd:"
+	echo ""
+	echo "    1. 'cd' testcase  diretory"
+	echo "    2. use 'st_setup' to setup env"
+	echo "    3. use 'st_test'  to debug testcase"
+	echo "    4. use 'st_clean' to clean env"
+	echo ""
+	echo "    Note: ln -s xx.sh test.sh if it doesn't exist"
+	echo ""
+}
+
+st_reload()
+{
+	st_inbuilt
+	st_bash_help
+
+	source ~/.bashrc
+	PS1="[sctp-tests bash]# "
+}
+
+st_help()
+{
+	echo "sctp-tests v1.0"
+	echo ""
+	echo "usage: sctp-tests [ OPTIONS ] COMMAND"
+	echo "where  OPTIONS:= { -e {TestCase | TestPlan}   |"
+	echo "                   -o  Prefix   | -l LogLevel |"
+	echo "                   -O  Outfile  | -l LogFile  | -f ConFile }"
+	echo "       COMMAND:= { init | run | shell }"
+	echo ""
+}
+
+st_cmd_parse()
+{
+	[ $(id -u) = 0 ] || {
+		st_log ERR "no permission, pls change to root !"
+		return 1
+	}
+
+	[ -z "$st_cmd" ] || return 0
+
+	st_cmd=$(getopt -o e:o:c:l:L:O: -- $st_opts)
+	st_cmd=${st_cmd##*-- }
+	st_cmd=${st_cmd//\'/}
+
+	return 0
+}
+
+sctp_tests()
+{
+	st_cmd_parse || return 1
+
+	case $st_cmd in
+	init)
+		st_do_init
+		;;
+	setup)
+		st_case_validate || return 1
+		st_do_setup
+		;;
+	test)
+		st_case_validate || return 1
+		st_do_test
+		;;
+	clean)
+		st_case_validate || return 1
+		st_do_clean
+		;;
+
+	run)
+		st_do_init
+		st_case_schedule
+		;;
+	shell)
+		st_shell
+		;;
+	reload)
+		st_reload
+		;;
+	*)
+		st_help
+		;;
+	esac
+}
+
+[ $# -eq 0 ] || st_opts="$*"
+sctp_tests

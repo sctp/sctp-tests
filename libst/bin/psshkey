@@ -1,0 +1,56 @@
+#!/bin/bash
+STBIN=$(dirname $(readlink -f $BASH_SOURCE))
+source $STBIN/../../topos/ph.cfg
+
+st_sshkey()
+{
+	local phost="$1"
+
+	echo "$phost sshkey setup ..."
+	ssh $phost mkdir -p ~/.ssh
+
+	scp $STBIN/../keys/network_rsa $phost:~/.ssh/id_rsa
+	scp $STBIN/../keys/network_rsa.pub $phost:~/.ssh/id_rsa.pub
+
+	ssh $phost 'cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys'
+	ssh $phost chmod 600 ~/.ssh/id_rsa
+	ssh $phost sed -i '35s/#//' /etc/ssh/ssh_config
+	ssh $phost sed -i '35s/ask/no/' /etc/ssh/ssh_config
+
+	echo "[done]"; echo ""
+}
+
+st_ssh_valid()
+{
+	local phost="$1"; local veth="$2"
+
+	echo "$phost $veth check ..."
+
+	ssh $phost ip l set $veth up || {
+		echo "[failed]"; echo ""
+		return 0
+	}
+
+	echo "[done]"; echo ""
+}
+
+st_ph_sshkey()
+{
+	st_sshkey 127.0.0.1
+	st_sshkey $Host1
+	st_sshkey $Host2
+}
+
+st_ph_sshping()
+{
+	st_ssh_valid $Host1 $Host1_eth1
+	st_ssh_valid $Host2 $Host2_eth1
+}
+
+st_ph_valid()
+{
+	st_ph_sshkey
+	st_ph_sshping
+}
+
+st_ph_valid

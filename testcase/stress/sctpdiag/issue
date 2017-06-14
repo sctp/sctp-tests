@@ -1,0 +1,148 @@
+Issue 1: null pointer dereference in sctp diag
+----------------------------------------------
+Testcase:
+  test.sh
+
+Calltrace:
+[   44.873794] BUG: unable to handle kernel NULL pointer dereference at           (null)
+[   44.874361] IP: rhashtable_walk_next+0x8b/0x160
+[   44.874709] PGD 359c9067
+[   44.874710] P4D 359c9067
+[   44.874917] PUD 84c4f067
+[   44.875103] PMD 0
+[   44.875289]
+[   44.875545] Oops: 0000 [#1] SMP
+[   44.875769] Modules linked in: sctp_diag inet_diag sctp xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack libcrc32c ipt_REJECT nf_reject_ipv4 tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables iptable_filter ppdev sg parport_pc pcspkr i2c_piix4 parport nfsd auth_rpcgss nfs_acl lockd grace sunrpc ip_tables ext4 jbd2 mbcache sr_mod cdrom ata_generic pata_acpi cirrus drm_kms_helper syscopyarea sysfillrect sysimgblt fb_sys_fops ttm virtio_blk drm virtio_net serio_raw virtio_pci virtio_ring virtio ata_piix libata i2c_core floppy dm_mirror dm_region_hash dm_log dm_mod
+[   44.880045] CPU: 0 PID: 10813 Comm: ss Not tainted 4.12.0-rc4.rhlist #78
+[   44.880506] Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011
+[   44.880906] task: ffff9be9378b3d80 task.stack: ffffb4b600ecc000
+[   44.881318] RIP: 0010:rhashtable_walk_next+0x8b/0x160
+[   44.881672] RSP: 0000:ffffb4b600ecf8d8 EFLAGS: 00010246
+[   44.882034] RAX: 0000000000000004 RBX: ffffb4b600ecf940 RCX: dead000000000200
+[   44.882525] RDX: ffffffffc04a6ce0 RSI: ffffb4b600ecf940 RDI: ffffb4b600ecf940
+[   44.883016] RBP: ffffb4b600ecf908 R08: ffff9be835928500 R09: 00000001800c000b
+[   44.883506] R10: 0000000000000001 R11: ffff9be835928500 R12: ffffffff8e5f3759
+[   44.884032] R13: ffffb4b600ecf940 R14: 0000000000000001 R15: 0000000000000000
+[   44.884526] FS:  00007f46a401c800(0000) GS:ffff9be93fc00000(0000) knlGS:0000000000000000
+[   44.885085] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   44.885484] CR2: 0000000000000000 CR3: 0000000084c1f000 CR4: 00000000000006f0
+[   44.885980] Call Trace:
+[   44.886159]  ? 0xffffffffc04bb000
+[   44.886400]  sctp_transport_get_next+0x1a/0x60 [sctp]
+[   44.886777]  sctp_for_each_transport+0x7b/0xd0 [sctp]
+[   44.887147]  ? __sk_destruct+0x119/0x1a0
+[   44.887422]  sctp_diag_dump+0xd2/0x318 [sctp_diag]
+[   44.887759]  ? __kmalloc_node_track_caller+0x214/0x280
+[   44.888118]  __inet_diag_dump+0x40/0x80 [inet_diag]
+[   44.888438]  inet_diag_dump+0x46/0x50 [inet_diag]
+[   44.888834]  netlink_dump+0x12c/0x290
+[   44.889106]  __netlink_dump_start+0x186/0x1f0
+[   44.889411]  inet_diag_handler_cmd+0xd1/0xf0 [inet_diag]
+[   44.889776]  ? inet_diag_handler_cmd+0xf0/0xf0 [inet_diag]
+[   44.890134]  sock_diag_rcv_msg+0x108/0x160
+[   44.890403]  ? sock_diag_bind+0x60/0x60
+[   44.890676]  netlink_rcv_skb+0xed/0x120
+[   44.890951]  sock_diag_rcv+0x28/0x40
+[   44.891187]  netlink_unicast+0x181/0x240
+[   44.891445]  netlink_sendmsg+0x2c2/0x3b0
+[   44.891705]  sock_sendmsg+0x38/0x50
+[   44.891937]  ___sys_sendmsg+0x27a/0x290
+[   44.892190]  ? vm_insert_pfn+0x12/0x20
+[   44.892438]  ? vvar_fault+0x7a/0x130
+[   44.892676]  ? special_mapping_fault+0x2e/0x90
+[   44.892981]  ? __do_fault+0x1e/0x70
+[   44.893229]  ? sock_has_perm+0x75/0x90
+[   44.893495]  ? kvm_clock_get_cycles+0x1e/0x20
+[   44.893851]  ? __getnstimeofday64+0x3c/0xd0
+[   44.894164]  __sys_sendmsg+0x54/0x90
+[   44.894417]  SyS_sendmsg+0x12/0x20
+[   44.894676]  do_syscall_64+0x67/0x150
+[   44.894954]  entry_SYSCALL64_slow_path+0x25/0x25
+[   44.895277] RIP: 0033:0x7f46a39193b0
+[   44.895530] RSP: 002b:00007fffd3763418 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+[   44.896088] RAX: ffffffffffffffda RBX: 00007fffd3763520 RCX: 00007f46a39193b0
+[   44.896581] RDX: 0000000000000000 RSI: 00007fffd37634e0 RDI: 0000000000000003
+[   44.897073] RBP: 0000000000000002 R08: 0000000000000004 R09: 0000000000000099
+[   44.897565] R10: 00007fffd3763130 R11: 0000000000000246 R12: 0000000000000003
+[   44.898118] R13: 00007fffd37634e0 R14: 00007fffd3763450 R15: 0000000000000084
+[   44.898627] Code: 41 5c 41 5d 41 5e 41 5f 5d c3 4d 8b 64 24 08 4d 85 e4 74 c2 a8 01 74 c8 41 8b 45 30 41 c7 45 34 00 00 00 00 83 c0 01 41 89 45 30 <41> 3b 07 72 3f 49 c7 45 08 00 00 00 00 49 8b 47 40 48 85 c0 49
+[   44.899970] RIP: rhashtable_walk_next+0x8b/0x160 RSP: ffffb4b600ecf8d8
+[   44.900420] CR2: 0000000000000000
+[   44.900674] ---[ end trace 87e456e409dd972c ]---
+[   44.901004] Kernel panic - not syncing: Fatal exception
+[   44.901542] Kernel Offset: 0xd000000 from 0xffffffff81000000 (relocation range: 0xffffffff80000000-0xffffffffbfffffff)
+[   44.902418] ---[ end Kernel panic - not syncing: Fatal exception
+
+Patchwork:
+  None
+
+Issue 2: use-after-free in sctp diag
+------------------------------------
+Testcase:
+  test.sh
+
+Calltrace:
+[   80.245332] BUG: unable to handle kernel paging request at ffffffffffffffe8
+[   80.245818] IP: sctp_diag_dump+0x1e4/0x324 [sctp_diag]
+[   80.246164] PGD 87c0c067
+[   80.246164] P4D 87c0c067
+[   80.246339] PUD 87c0e067
+[   80.246514] PMD 0
+[   80.246710]
+[   80.246968] Oops: 0000 [#1] SMP
+[   80.247175] Modules linked in: sctp_diag inet_diag sctp xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack libcrc32c ipt_REJECT nf_reject_ipv4 tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables iptable_filter ppdev parport_pc parport i2c_piix4 sg pcspkr nfsd auth_rpcgss nfs_acl lockd grace sunrpc ip_tables ext4 jbd2 mbcache sr_mod cdrom ata_generic pata_acpi cirrus drm_kms_helper syscopyarea sysfillrect sysimgblt fb_sys_fops ttm drm virtio_net virtio_blk ata_piix libata i2c_core serio_raw floppy virtio_pci virtio_ring virtio dm_mirror dm_region_hash dm_log dm_mod
+[   80.251246] CPU: 0 PID: 14159 Comm: ss Not tainted 4.12.0-rc4.rhlist #78
+[   80.251684] Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011
+[   80.252060] task: ffff97d633fb9480 task.stack: ffffac5c80b80000
+[   80.252447] RIP: 0010:sctp_diag_dump+0x1e4/0x324 [sctp_diag]
+[   80.252860] RSP: 0018:ffffac5c80b839b8 EFLAGS: 00010246
+[   80.253203] RAX: ffff97d6342b4410 RBX: ffffffffffffff88 RCX: 0000000000000006
+[   80.253668] RDX: 0000000000000000 RSI: 0000000000000082 RDI: ffff97d63fc0e0a0
+[   80.254130] RBP: ffffac5c80b83a50 R08: 00000000fffffffe R09: 0000000000004b9c
+[   80.254712] R10: 0000000000000005 R11: 0000000000004b9b R12: ffff97d535b77318
+[   80.255215] R13: ffff97d535b77318 R14: ffff97d63428d300 R15: ffff97d581530f00
+[   80.255680] FS:  00007f46cb2cb800(0000) GS:ffff97d63fc00000(0000) knlGS:0000000000000000
+[   80.256203] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   80.256593] CR2: ffffffffffffffe8 CR3: 000000013289e000 CR4: 00000000000006f0
+[   80.257086] Call Trace:
+[   80.257255]  ? __kmalloc_node_track_caller+0x214/0x280
+[   80.257595]  ? policydb_context_isvalid+0x95/0xb0
+[   80.257906]  __inet_diag_dump+0x40/0x80 [inet_diag]
+[   80.258246]  inet_diag_dump+0x46/0x50 [inet_diag]
+[   80.258579]  netlink_dump+0x12c/0x290
+[   80.258823]  __netlink_dump_start+0x186/0x1f0
+[   80.259111]  inet_diag_handler_cmd+0xd1/0xf0 [inet_diag]
+[   80.259460]  ? inet_diag_handler_cmd+0xf0/0xf0 [inet_diag]
+[   80.259924]  sock_diag_rcv_msg+0x108/0x160
+[   80.260195]  ? sock_diag_bind+0x60/0x60
+[   80.260451]  netlink_rcv_skb+0xed/0x120
+[   80.260731]  sock_diag_rcv+0x28/0x40
+[   80.260987]  netlink_unicast+0x181/0x240
+[   80.261248]  netlink_sendmsg+0x2c2/0x3b0
+[   80.261509]  sock_sendmsg+0x38/0x50
+[   80.261743]  ___sys_sendmsg+0x27a/0x290
+[   80.261997]  ? vm_insert_pfn+0x12/0x20
+[   80.262246]  ? vvar_fault+0x7a/0x130
+[   80.262482]  ? special_mapping_fault+0x2e/0x90
+[   80.262842]  ? __do_fault+0x1e/0x70
+[   80.263116]  ? sock_has_perm+0x75/0x90
+[   80.263367]  ? kvm_clock_get_cycles+0x1e/0x20
+[   80.263678]  ? __getnstimeofday64+0x3c/0xd0
+[   80.263976]  __sys_sendmsg+0x54/0x90
+[   80.264213]  SyS_sendmsg+0x12/0x20
+[   80.264440]  do_syscall_64+0x67/0x150
+[   80.264707]  entry_SYSCALL64_slow_path+0x25/0x25
+[   80.265053] RIP: 0033:0x7f46cabc83b0
+[   80.265315] RSP: 002b:00007ffc4a6dec38 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+[   80.265807] RAX: ffffffffffffffda RBX: 00007ffc4a6ded40 RCX: 00007f46cabc83b0
+[   80.266271] RDX: 0000000000000000 RSI: 00007ffc4a6ded00 RDI: 0000000000000003
+[   80.266800] RBP: 0000000000000002 R08: 0000000000000004 R09: 0000000000000099
+[   80.267299] R10: 00007ffc4a6de950 R11: 0000000000000246 R12: 0000000000000003
+[   80.267790] R13: 00007ffc4a6ded00 R14: 00007ffc4a6dec70 R15: 0000000000000084
+[   80.268268] Code: 30 9a 4b c0 48 89 c6 e8 1b 13 fd ff 85 c0 0f 84 a7 fe ff ff eb a7 31 c0 48 89 de 48 c7 c7 76 a0 4b c0 e8 aa 2f ce d8 48 8b 45 98 <0f> b7 53 60 0f b7 40 08 66 c1 c2 08 66 39 d0 74 09 66 85 c0 0f
+[   80.269541] RIP: sctp_diag_dump+0x1e4/0x324 [sctp_diag] RSP: ffffac5c80b839b8
+[   80.270046] CR2: ffffffffffffffe8
+
+Patchwork:
+  None
+

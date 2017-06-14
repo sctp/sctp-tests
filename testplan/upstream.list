@@ -1,0 +1,3 @@
+testcase/testsuit/lksctptools/test.sh
+testcase/performance/repeatability/sctp_rr.sh
+testcase/performance/repeatability/sctp_stream.sh
