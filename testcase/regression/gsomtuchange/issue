@@ -1,0 +1,11 @@
+Issue1: panic caused by pmtu changed
+------------------------------------
+Testcase:
+  test.sh
+
+Upstream:
+commit ecc515d7238f2cffac839069d56dc271141defa0
+Author: Xin Long <lucien.xin@gmail.com>
+Date:   Mon Oct 24 01:01:09 2016 +0800
+
+    sctp: fix the panic caused by route update
