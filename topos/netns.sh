@@ -102,3 +102,56 @@ st_netns_team_destroy()
 		st_${netns}_run teamd -t $team -k
 	done
 }
+
+# exported
+st_netns_ipsec_getopt()
+{
+	local opts="$2"; local name="$1"
+	local last=""
+
+	for opt in $opts; do
+		[ "$name" = "$last" ] && {
+			echo $opt
+			break
+		}
+		last=$opt
+	done
+}
+
+# exported
+st_netns_ipsec_create()
+{
+	local netns=$1;   local locals=($2)
+	local peers=($3); local ipsec="$4"
+	local localt=($5);local peert=($6)
+	local dir="$7"
+
+	local mode=$(st_netns_ipsec_getopt "mode" "$ipsec")
+	local proto=$(st_netns_ipsec_getopt "proto" "$ipsec")
+	local bdir="in"; local tnl=""
+
+	[ $dir = $bdir ] && bdir="out"
+	IFS='|'; ipsec=($ipsec); unset IFS
+	for i in "${!locals[@]}" ; do
+		[ $mode = "tunnel" ] && tnl="src ${localt[$i]} dst ${peert[$i]}"
+		st_${netns}_run ip xfrm state add src ${locals[$i]} dst ${peers[$i]} ${ipsec[0]}
+		st_${netns}_run ip xfrm policy add dir $dir src ${locals[$i]} dst ${peers[$i]} \
+			proto any tmpl $tnl proto $proto mode $mode level required
+
+		[ $mode = "tunnel" ] && tnl="src ${peert[$i]} dst ${localt[$i]}"
+		st_${netns}_run ip xfrm state add src ${peers[$i]} dst ${locals[$i]} ${ipsec[1]}
+		st_${netns}_run ip xfrm policy add dir $bdir src ${peers[$i]} dst ${locals[$i]} \
+			proto any tmpl $tnl proto $proto mode $mode level required
+	done
+}
+
+# exported
+st_netns_ipsec_destroy()
+{
+	local netns=$1
+
+	st_${netns}_run ip xfrm state flush
+	st_${netns}_run ip xfrm policy flush
+	st_${netns}_run ip -6 xfrm state flush
+	st_${netns}_run ip -6 xfrm policy flush
+}
