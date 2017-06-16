@@ -5,3 +5,5 @@ testcase/performance/repeatability/sctp_rr~on_ipsec.sh
 testcase/performance/repeatability/sctp_stream~on_ipsec.sh
 testcase/stress/procdumps/test.sh
 testcase/regression/gsomtuchange/test.sh
+testcase/performance/sctphashtable/test~on_netns.sh
+testcase/performance/sctphashtable/test~on_team.sh

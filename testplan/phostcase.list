@@ -2,3 +2,4 @@ testcase/performance/repeatability/sctp_rr~on_phost.sh
 testcase/performance/repeatability/sctp_stream~on_phost.sh
 testcase/performance/repeatability/tcp_rr~on_phost.sh
 testcase/performance/repeatability/tcp_stream~on_phost.sh
+testcase/performance/sctphashtable/test~on_phost.sh

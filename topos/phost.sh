@@ -10,7 +10,15 @@ st_phost_ph_create()
 	for i in "${!ph[@]}" ; do
 		eval "  st_${ph[$i]}_run()
 			{
-				ssh $ssho ${host[$i]} \$@
+				cat <<- EOF |  ssh $ssho ${host[$i]}
+				\$@
+				EOF
+			}"
+		eval "  st_${ph[$i]}_put()
+			{
+				local d=\${2:-"~/"}
+				local f=\$1
+				scp $ssho -r \$f ${host[$i]}:\$d
 			}"
 	done
 }
@@ -48,5 +56,6 @@ st_phost_ph_destroy()
 
 	for i in "${!phost[@]}" ; do
 		unset st_${phost[$i]}_run
+		unset st_${phost[$i]}_put
 	done
 }
