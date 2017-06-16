@@ -1,0 +1,12 @@
+Issue 1: sctp gso panic with ipsec
+----------------------------------
+Testcase:
+  sctp_rr~on_ipsec.sh
+  sctp_stream~on_ipsec.sh
+
+Upstream:
+commit 5207f3996338e1db71363fe381c81aaf1e54e4e3
+Author: Xin Long <lucien.xin@gmail.com>
+Date:   Tue Jan 24 14:05:16 2017 +0800
+
+    sctp: sctp gso should set feature with NETIF_F_SG when calling skb_segment

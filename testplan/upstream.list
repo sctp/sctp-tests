@@ -1,3 +1,5 @@
 testcase/testsuit/lksctptools/test.sh
 testcase/performance/repeatability/sctp_rr.sh
 testcase/performance/repeatability/sctp_stream.sh
+testcase/performance/repeatability/sctp_rr~on_ipsec.sh
+testcase/performance/repeatability/sctp_stream~on_ipsec.sh

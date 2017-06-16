@@ -47,10 +47,28 @@ st_ph_sshping()
 	st_ssh_valid $Host2 $Host2_eth1
 }
 
+st_ph_clean()
+{
+	local phost="$1"; local veth="$2"
+
+	echo "$phost clean ..."
+	ssh $phost iptables -F
+	ssh $phost ip6tables -F
+	ssh $phost nmcli dev set $veth managed no > /dev/null 2>&1
+	echo "[done]"; echo ""
+}
+
+st_ph_cleanup()
+{
+	st_ph_clean $Host1 $Host1_eth1
+	st_ph_clean $Host2 $Host2_eth1
+}
+
 st_ph_valid()
 {
 	st_ph_sshkey
 	st_ph_sshping
+	st_ph_cleanup
 }
 
 st_ph_valid
