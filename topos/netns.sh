@@ -155,3 +155,27 @@ st_netns_ipsec_destroy()
 	st_${netns}_run ip -6 xfrm state flush
 	st_${netns}_run ip -6 xfrm policy flush
 }
+
+# exported
+st_netns_route_fwd()
+{
+	local netns=$@
+
+	for ns in $netns
+	do
+		st_${ns}_run sysctl -w net.ipv4.conf.all.forwarding=1
+		st_${ns}_run sysctl -w net.ipv6.conf.all.forwarding=1
+	done
+}
+
+# exported
+st_netns_route_add()
+{
+	local netns=$1;   local addrs=($2)
+	local veths=($4); local gates=($3)
+
+	for i in "${!addrs[@]}" ; do
+		st_${netns}_run \
+		ip r a ${addrs[$i]} via ${gates[$i]} dev ${veths[$i]}
+	done
+}
