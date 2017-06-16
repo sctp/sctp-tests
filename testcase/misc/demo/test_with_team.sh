@@ -1,5 +1,4 @@
 Name="sctp repeat test with team" # Case Name, demand
-Topo_opt='{ "runner" : { "name": "roundrobin" } }'
 Topo="netns_team_cs" # Optional
 source ./librepeat.sh
 

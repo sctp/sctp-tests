@@ -26,7 +26,7 @@ st_topo_validate()
 	local topo=$Topo
 
 	[ -z $topo ] && return 0
-	
+
 	topo="$ROOTDIR/topos/$topo.sh"
 
 	[ -f $topo ] || {
@@ -53,6 +53,7 @@ st_case_validate()
 		return 1
 	}
 
+	Name=""
 	source $case
 
 	[ -n "$Name" ] || {
@@ -102,7 +103,7 @@ st_case_schedule()
 		st_case_validate $c || return 1
 
 		st_log INFO "=== $Name === start"
-		st_case_run >> $Output 2>&1 
+		st_case_run >> $Output 2>&1
 		st_log INFO "--- $Name --- done"
 		st_env_popd
 	done
@@ -140,6 +141,9 @@ st_do_clean()
 	st_func_chkdo do_clean
 	st_func_chkdo st_topo_clean
 
+	unset Topo Topo_opt
+	unset do_test do_setup do_clean
+
 	st_log DBG "$Name clean done"
 }
 
@@ -158,9 +162,16 @@ st_cfg_load()
 	source $cfg
 }
 
+st_opt_load()
+{
+	local topo_opts="$1"
+
+	eval "$topo_opts"
+}
+
 st_init_param()
 {
-	local args=$(getopt -o e:o:c:l:L:O: -- $st_opts)
+	local args=$(getopt -o e:o:f:l:L:O:T: -- $st_opts)
 
 	st_cfg_load st.cfg
 
@@ -173,7 +184,8 @@ st_init_param()
 		-L) LogFile="$2"; shift 2 ;;
 		-e) TestCase="$2"; shift 2 ;;
 		-l) LogLevel="$2"; shift 2 ;;
-		-c) st_cfg_load "$2"; shift 2 ;;
+		-T) st_opt_load "$2"; shift 2;;
+		-f) st_cfg_load "$2"; shift 2 ;;
 		--) shift; break;;
 		esac
 	done
@@ -215,7 +227,7 @@ st_inbuilt()
 	for cmd in $cmds; do
 		eval "  st_$cmd()
 			{
-				st_cmd=$cmd sctp_tests 
+				st_cmd=$cmd sctp_tests
 			}"
 	done
 }
@@ -225,7 +237,7 @@ st_load_libst()
 	local name=$1
 
 	[ -z $name ] && return 0
-	
+
 	name="$ROOTDIR/libst/$name.sh"
 
 	[ -f $name ] || {
@@ -266,8 +278,11 @@ st_help()
 	echo "usage: sctp-tests [ OPTIONS ] COMMAND"
 	echo "where  OPTIONS:= { -e {TestCase | TestPlan}   |"
 	echo "                   -o  Prefix   | -l LogLevel |"
-	echo "                   -O  Outfile  | -l LogFile  | -f ConFile }"
+	echo "                   -O  Outfile  | -l LogFile  |"
+	echo "                   -T  TOPOOPT  | -f Confile }"
 	echo "       COMMAND:= { init | run | shell }"
+	echo ""
+	echo "       TOPOOPT:= { st_team_opt=xxx  | st_ipsec_opt=xxx }"
 	echo ""
 }
 
@@ -280,7 +295,7 @@ st_cmd_parse()
 
 	[ -z "$st_cmd" ] || return 0
 
-	st_cmd=$(getopt -o e:o:c:l:L:O: -- $st_opts)
+	st_cmd=$(getopt -o e:o:f:l:L:O:T: -- $st_opts)
 	st_cmd=${st_cmd##*-- }
 	st_cmd=${st_cmd//\'/}
 
