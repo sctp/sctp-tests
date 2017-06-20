@@ -3,40 +3,40 @@ ITERS=3
 
 rpt_env_netperf()
 {
-        local url=ftp://ftp.netperf.org/netperf/
-        local name=netperf-2.7.0
+	local url=https://github.com/HewlettPackard/netperf/archive/
+	local name=netperf-2.7.0
 	local tar=.tar.gz
 
 	[ -a /usr/bin/netperf ] && return 0
 
-        st_env_pushd /tmp
+	st_env_pushd /tmp
 
-        wget $url$name$tar; tar zxf $name$tar; cd $name
-        ./configure --enable-sctp --bindir=/usr/bin
-        make && make install
+	wget $url$name$tar; tar zxf $name$tar; cd netperf-$name
+	./configure --enable-sctp --bindir=/usr/bin
+	make && make install
 
-        st_log DBG "netperf setup done"
+	st_log DBG "netperf setup done"
 
-        st_env_popd
+	st_env_popd
 }
 
 rpt_env_datamash()
 {
-        local url=http://ftp.gnu.org/gnu/datamash/
-        local name=datamash-1.1.0
+	local url=http://ftp.gnu.org/gnu/datamash/
+	local name=datamash-1.1.0
 	local tar=.tar.gz
 
 	[ -a /usr/bin/datamash ] && return 0
 
-        st_env_pushd /tmp
+	st_env_pushd /tmp
 
-        wget $url$name$tar; tar zxf $name$tar; cd $name
-        ./configure --prefix /usr
-        make && make install
+	wget $url$name$tar; tar zxf $name$tar; cd $name
+	./configure --prefix /usr
+	make && make install
 
-        st_log DBG "rpt_datamash setup done"
+	st_log DBG "rpt_datamash setup done"
 
-        st_env_popd
+	st_env_popd
 }
 
 rpt_env_init()
@@ -54,8 +54,8 @@ rpt_snmp_log()
 
 rpt_dmsg_log()
 {
-        local log=$1 i=$2
-        dmesg -dc > $(st_o).${log}.${i}.dmesg
+	local log=$1 i=$2
+	dmesg -dc > $(st_o).${log}.${i}.dmesg
 }
 
 rpt_summ_log()
@@ -65,21 +65,21 @@ rpt_summ_log()
 	local vars=""
 
 	if [[ $NETPERF_PARAMS =~ "_STREAM" ]]; then
-        	rate=($(tail -n1 $(st_o).${log}.${i}.netperf))
-        	rate=${rate[4]}
+		rate=($(tail -n1 $(st_o).${log}.${i}.netperf))
+		rate=${rate[4]}
 	else
-        	rate=($(tail -n2 $(st_o).${log}.${i}.netperf | head -n1))
-        	rate=${rate[5]}
+		rate=($(tail -n2 $(st_o).${log}.${i}.netperf | head -n1))
+		rate=${rate[5]}
 	fi
 
 	for var in $VARS; do
-        	vars="$vars $(rpt_snmp_diff client $i $var $log)"
+		vars="$vars $(rpt_snmp_diff client $i $var $log)"
 	done
 	printf "$FMT" $rate $vars >> $(st_o).${log}.summary
 
 	vars=""
 	for var in $VARS; do
-        	vars="$vars $(rpt_snmp_diff server $i $var $log)"
+		vars="$vars $(rpt_snmp_diff server $i $var $log)"
 	done
 	printf "$FMT" "server" $vars >> $(st_o).${log}.summary
 
@@ -88,20 +88,20 @@ rpt_summ_log()
 
 rpt_snmp_var()
 {
-        local file=$1
-        local var=$2
+	local file=$1
+	local var=$2
 
-        sed -n "s/^Sctp$var\\s\\+//p" $file
+	sed -n "s/^Sctp$var\\s\\+//p" $file
 }
 
 rpt_snmp_diff()
 {
-        local dir=$1 i=$2 var=$3 log=$4
+	local dir=$1 i=$2 var=$3 log=$4
 
-        local before=$(rpt_snmp_var $(st_o).${log}.${i}.snmp.${dir}.abefore $var)
-        local aafter=$(rpt_snmp_var $(st_o).${log}.${i}.snmp.${dir}.aafter $var)
+	local before=$(rpt_snmp_var $(st_o).${log}.${i}.snmp.${dir}.abefore $var)
+	local aafter=$(rpt_snmp_var $(st_o).${log}.${i}.snmp.${dir}.aafter $var)
 
-        echo $((aafter-before))
+	echo $((aafter-before))
 }
 
 rpt_rs_log()
@@ -115,20 +115,21 @@ rpt_rs_log()
 		return 0
 	}
 
-        VARS="T3Retransmits \
-                FastRetransmits \
-                InPktSoftirq \
-                InPktBacklog \
-                InPktDiscards \
-                InDataChunkDiscards"
-        FMT="%8s  "
+	VARS="T3Retransmits \
+	      FastRetransmits \
+	      InPktSoftirq \
+	      InPktBacklog \
+	      InPktDiscards \
+	      InDataChunkDiscards"
+	FMT="%8s  "
 
-        for var in $VARS; do
-                FMT="$FMT %$(echo $var | wc -c)s"
-        done
-        FMT="$FMT\n"
+	for var in $VARS; do
+		FMT="$FMT %$(echo $var | wc -c)s"
+	done
 
-        printf "$FMT" "Rate" $VARS > $(st_o).${log}.summary
+	FMT="$FMT\n"
+	printf "$FMT" "Rate" $VARS > $(st_o).${log}.summary
+
 	return 0
 }
 
