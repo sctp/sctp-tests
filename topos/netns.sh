@@ -179,3 +179,28 @@ st_netns_route_add()
 		ip r a ${addrs[$i]} via ${gates[$i]} dev ${veths[$i]}
 	done
 }
+
+# exported
+st_netns_tnl_create()
+{
+	local netns=$1;    local veths=($2)
+	local locals=($3); local peers=($4)
+	local mode=$5;     local opt="$6"
+
+	for i in "${!veths[@]}" ; do
+		st_${netns}_run ip tunnel add ${veths[$i]} mode $mode \
+				remote ${peers[$i]} local ${locals[$i]} $opt
+		st_${netns}_run ip link set ${veths[$i]} up
+	done
+}
+
+# exported
+st_netns_dev_destroy()
+{
+	local netns=$1; local veths=($2)
+
+	for i in "${!veths[@]}" ; do
+		st_${netns}_run ip link del ${veths[$i]}
+	done
+
+}
