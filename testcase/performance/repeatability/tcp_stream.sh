@@ -5,7 +5,7 @@ source ./librpt.sh
 do_setup()
 {
 	rpt_env_init
-        st_s_run netserver
+	st_s_run netserver
 }
 
 do_clean()

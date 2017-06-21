@@ -66,5 +66,4 @@ or with any opts:
 
 - add more Topos like vlan, bonding, bridge ... and their combinations.
 - add the reproducers of old sctp issues into Regression.
-- sctphashtable and gsomtuchange test cases into Performance.
 - test cases for the new sctp features into Conformance.
