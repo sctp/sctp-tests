@@ -204,3 +204,43 @@ st_netns_dev_destroy()
 	done
 
 }
+
+# exported
+################################
+#st_netns_vlans_create
+#      $1:name of netns
+#      $2:array of vlan names
+#      $3:array of dev names
+#      $4:array of vlan ids
+###############################
+st_netns_vlans_create()
+{
+	local netns=$1
+	local vlans=($2)
+	local veths=($3)
+	local vlan_ids=($4)
+	for i in "${!veths[@]}"
+	do
+		st_${netns}_run \
+			ip link add link ${veths[$i]} name ${vlans[$i]} type vlan id ${vlan_ids[$i]}
+		st_${netns}_run ip link set ${vlans[$i]} up
+	done
+}
+
+# exported
+##############################
+#st_netns_vlans_destroy
+#	$1:name of netns
+#	$2:array of vlan names
+##############################
+st_netns_vlans_destroy()
+{
+	local netns=$1
+	local vlans=$2
+
+	for vlan in $vlans
+	do
+		st_${netns}_run ip link set $vlan down
+		st_${netns}_run ip link del $vlan
+	done
+}
