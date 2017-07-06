@@ -244,3 +244,76 @@ st_netns_vlans_destroy()
 		st_${netns}_run ip link del $vlan
 	done
 }
+
+# exported
+#############################
+#st_netns_bridge_create
+#	$1:name of netns
+#	$2:array of bridge name
+#############################
+st_netns_bridges_create()
+{
+	local netns=$1
+	local bridges=($2)
+
+	for i in "${!bridges[@]}"
+	do
+		st_${netns}_run ip link add ${bridges[$i]} type bridge
+		st_${netns}_run ip link set ${bridges[$i]} up
+	done
+}
+
+# exported
+############################
+#st_netns_bridges_destroy
+#	$1: name of netns
+#	$2: array of bridges name
+############################
+st_netns_bridges_destroy()
+{
+	local netns=$1
+	local bridges=($2)
+
+	for i in "${!bridges[@]}"
+	do
+		st_${netns}_run ip link set ${bridges[$i]} down
+		st_${netns}_run ip link del ${bridges[$i]}
+	done
+}
+
+# exported
+############################
+#st_netns_bridge_add_veths
+#	$1: name of netns
+#	$2: name of bridge
+#	$3: array of veths
+############################
+st_netns_bridge_add_veths()
+{
+	local netns=$1
+	local bridge=$2
+	local veths=($3)
+
+	for i in "${!veths[@]}"
+	do
+		st_${netns}_run ip link set ${veths[$i]} master $bridge
+		st_${netns}_run ip link set ${veths[$i]} up
+	done
+}
+
+# exported
+###########################
+#st_netns_bridge_del_veths
+#	$1: name of netns
+#	$2: array of veths
+###########################
+st_netns_bridge_del_veths()
+{
+	local netns=$1
+	local veths=($2)
+
+	for i in "${!veths[@]}"
+	do
+		st_${netns}_run ip link set ${veths[$i]} nomaster
+	done
+}
