@@ -196,7 +196,7 @@ st_init_param()
 st_check_pack()
 {
 	st_load_libst "system" || return 1
-	st_package_setup >> $Output 2>&1
+	st_package_setup >> $Output 2>&1 || return 1
 	st_log DBG "check and install package done !"
 }
 
@@ -324,7 +324,7 @@ sctp_tests()
 		;;
 
 	run)
-		st_do_init
+		st_do_init || return 1
 		st_case_schedule
 		;;
 	shell)
