@@ -16,8 +16,17 @@ st_lksctp_setup()
 	st_env_popd
 }
 
+st_libtool_setup()
+{
+	[ -a /usr/bin/libtool ] && return 0
+
+	st_log ERR "no libtool found"
+	return 1
+}
+
 st_package_setup()
 {
+	st_libtool_setup || return 1
 	set -x
 	st_lksctp_setup
 	set +x
