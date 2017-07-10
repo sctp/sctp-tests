@@ -1,0 +1,5 @@
+commit dfcb9f4f99f1e9a49e43398a7bfbf56927544af1
+Author: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Date:   Thu Feb 23 09:31:18 2017 -0300
+
+    sctp: deny peeloff operation on asocs with threads sleeping on it
