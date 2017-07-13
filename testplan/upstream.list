@@ -8,5 +8,6 @@ testcase/stress/procdumps/test.sh
 testcase/stress/sctpdiag/test.sh
 testcase/regression/gsomtuchange/test.sh
 testcase/regression/peeloffbusy/test.sh
+testcase/regression/extoverflow/test.sh
 testcase/performance/sctphashtable/test~on_netns.sh
 testcase/performance/sctphashtable/test~on_team.sh
