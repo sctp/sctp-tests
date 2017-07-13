@@ -1,0 +1,43 @@
+Issue 1: extensions variable over flow when all ext chunks are set
+------------------------------------------------------------------
+Testcase:
+  test.sh
+
+Calltrace:
+[  310.646266] CPU: 0 PID: 2689 Comm: sctp_test Not tainted 4.12.0-rc6.streams #94
+[  310.646890] Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011
+[  310.647350] Call Trace:
+[  310.647554]  dump_stack+0x63/0x87
+[  310.647841]  panic+0xeb/0x239
+[  310.648076]  ? sctp_make_init+0x3f8/0x400 [sctp]
+[  310.648446]  __stack_chk_fail+0x1b/0x20
+[  310.648771]  sctp_make_init+0x3f8/0x400 [sctp]
+[  310.649101]  sctp_sf_do_prm_asoc+0x50/0xf0 [sctp]
+[  310.649464]  sctp_do_sm+0xa4/0x300 [sctp]
+[  310.649779]  ? sctp_cname+0x60/0x60 [sctp]
+[  310.650134]  ? ip_route_output_key_hash_rcu+0x1da/0x7f0
+[  310.650612]  ? xfrm_lookup_route+0x1b/0x70
+[  310.650909]  ? ip_route_output_flow+0x47/0x50
+[  310.651210]  ? _raw_spin_unlock_bh+0x1e/0x20
+[  310.651610]  ? sctp_hash_transport+0x290/0x360 [sctp]
+[  310.651993]  ? sctp_unpack_cookie+0x3c3/0x4f0 [sctp]
+[  310.652384]  sctp_primitive_ASSOCIATE+0x3a/0x50 [sctp]
+[  310.652793]  __sctp_connect+0x346/0x410 [sctp]
+[  310.653124]  sctp_connect+0x53/0xa0 [sctp]
+[  310.653461]  inet_dgram_connect+0x2e/0x70
+[  310.653794]  SYSC_connect+0xd9/0x110
+[  310.654047]  ? getnstimeofday64+0xe/0x20
+[  310.654350]  ? __audit_syscall_entry+0xb3/0xf0
+[  310.654718]  ? syscall_trace_enter+0x1d0/0x2b0
+[  310.655027]  ? __audit_syscall_exit+0x209/0x290
+[  310.655379]  SyS_connect+0xe/0x10
+[  310.655660]  do_syscall_64+0x67/0x150
+[  310.655967]  entry_SYSCALL64_slow_path+0x25/0x25
+[  310.656287] RIP: 0033:0x7f9ed1035070
+[  310.656575] RSP: 002b:00007fff0a6038f8 EFLAGS: 00000246 ORIG_RAX: 000000000000002a
+[  310.657116] RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 00007f9ed1035070
+[  310.657669] RDX: 0000000000000010 RSI: 00000000006083a0 RDI: 0000000000000003
+[  310.658156] RBP: 00000000006083a0 R08: 00007f9ed1717740 R09: 000000000000000d
+[  310.658761] R10: 00007fff0a603610 R11: 0000000000000246 R12: 0000000000000010
+[  310.659261] R13: 0000000000000001 R14: 0000000002242730 R15: 0000000000000000
+[    0.807145] mce: Unable to init MCE device (rc: -5)
