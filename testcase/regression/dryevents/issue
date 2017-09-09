@@ -1,0 +1,8 @@
+This is a regression case for the commit below.
+It is expected to hang in case it reproduces the issue.
+
+commit 7906b00f5cd1cd484fced7fcda892176e3202c8a
+Author: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Date:   Fri Sep 8 11:35:21 2017 -0300
+
+    sctp: fix missing wake ups in some situations
