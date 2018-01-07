@@ -68,11 +68,19 @@ st_case_validate()
 st_parse_testcase()
 {
 	local path=$TestCase
-
+	local t
+	local t_
 
 	[ -d "$path" ] && {
-		echo "$path/test.sh"
-		return 0;
+		if [ -x "$path/test.sh" ]; then
+			echo "$path/test.sh"
+			return 0
+		fi
+		for t in "$path"/*.sh; do
+			t_=${t##*/}
+			[ "${t_:0:3}" != "lib" ] && echo "$t"
+		done
+		return 0
 	}
 
 	[ ${path:0-4} = "list" ] && {
