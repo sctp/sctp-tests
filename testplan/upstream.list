@@ -13,3 +13,4 @@ testcase/performance/sctphashtable/test~on_netns.sh
 testcase/performance/sctphashtable/test~on_team.sh
 testcase/conformance/ndatasched/test.sh
 testcase/conformance/strreset/test.sh
+testcase/conformance/prsctp/test.sh
