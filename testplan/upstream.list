@@ -11,3 +11,4 @@ testcase/regression/peeloffbusy/test.sh
 testcase/regression/extoverflow/test.sh
 testcase/performance/sctphashtable/test~on_netns.sh
 testcase/performance/sctphashtable/test~on_team.sh
+testcase/conformance/ndatasched/test.sh
