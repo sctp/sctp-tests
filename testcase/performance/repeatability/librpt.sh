@@ -3,16 +3,13 @@ ITERS=3
 
 rpt_env_netperf()
 {
-	local url=https://github.com/HewlettPackard/netperf/archive/
-	local name=netperf-2.7.0
-	local tar=.tar.gz
-
 	[ -a /usr/bin/netperf ] && return 0
 
 	st_env_pushd /tmp
 
-	wget $url$name$tar; tar zxf $name$tar; cd netperf-$name
-	./configure --enable-sctp --bindir=/usr/bin
+	git clone https://github.com/HewlettPackard/netperf.git
+	cd netperf/ && ./autogen.sh
+	./configure CFLAGS="-O2 -D_GNU_SOURCE" --enable-sctp --bindir=/usr/bin
 	make && make install
 
 	st_log DBG "netperf setup done"
